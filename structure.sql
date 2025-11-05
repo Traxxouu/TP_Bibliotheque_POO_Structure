@@ -18,3 +18,14 @@ insert into livres (titre, auteur) values
 ('Circe', 'Madeline Miller'),
 ('The Goldfinch', 'Donna Tartt'),
 ('The Alchemist', 'Paulo Coelho');
+
+
+-- ETAPE 2 : les utilisatueurs
+USE bibliotheque;
+create table if not exists utilisateurs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
