@@ -8,13 +8,19 @@ if (!isset($_SESSION['user_id'])) {
 require_once 'db.php';
 require_once 'classes/Livre.php';
 require_once 'classes/Utilisateur.php';
+require_once 'classes/Favoris.php';
 
 $livreManager = new Livre($pdo);
 $utilisateurManager = new Utilisateur($pdo);
+$favorisManager = new Favoris($pdo);
+
 $utilisateur = $utilisateurManager->getUtilisateurParId($_SESSION['user_id']);
 $livres = $livreManager->getTousLesLivres();
+$mesFavoris = $favorisManager->getFavorisUtilisateur($_SESSION['user_id']);
+
 $message_edition = '';
 $erreurs_edition = [];
+$message_favori = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'editer') {
     $nouveau_nom = trim($_POST['nom'] ?? '');
@@ -43,13 +49,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if (empty($erreurs_edition)) {
                 $stmt = $pdo->prepare("UPDATE utilisateurs SET nom = ?, email = ? WHERE id = ?");
                 $stmt->execute([$nouveau_nom, $nouveau_email, $_SESSION['user_id']]);
+                
                 $_SESSION['user_nom'] = $nouveau_nom;
                 $_SESSION['user_email'] = $nouveau_email;
+
                 $message_edition = "Votre compte a été mis à jour avec succès !";
                 $utilisateur = $utilisateurManager->getUtilisateurParId($_SESSION['user_id']);
             }
         } catch (PDOException $e) {
             $erreurs_edition[] = "Erreur lors de la mise à jour.";
+        }
+    }
+}
+
+// Favoris
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'ajouter_favori') {
+    $livre_id = intval($_POST['livre_id'] ?? 0);
+    
+    if ($livre_id > 0) {
+        if ($favorisManager->ajouterFavori($_SESSION['user_id'], $livre_id)) {
+            $message_favori = "Livre ajouté aux favoris !";
+            $mesFavoris = $favorisManager->getFavorisUtilisateur($_SESSION['user_id']);
+        } else {
+            $message_favori = "Erreur lors de l'ajout aux favoris.";
+        }
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'retirer_favori') {
+    $livre_id = intval($_POST['livre_id'] ?? 0);
+    
+    if ($livre_id > 0) {
+        if ($favorisManager->retirerFavori($_SESSION['user_id'], $livre_id)) {
+            $message_favori = "Livre retiré des favoris !";
+            $mesFavoris = $favorisManager->getFavorisUtilisateur($_SESSION['user_id']);
+        } else {
+            $message_favori = "Erreur lors du retrait des favoris.";
         }
     }
 }
@@ -72,6 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <a href="logout.php" class="btn btn-primary">Se déconnecter</a>
             </div>
         </header>
+        
+        <?php if (!empty($message_favori)): ?>
+            <div class="success">
+                <?php echo htmlspecialchars($message_favori); ?>
+            </div>
+        <?php endif; ?>
         
         <!-- Section du compte -->
         <div class="section">
@@ -110,7 +151,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </form>
         </div>
         
-        <!-- les livres disponibles -->
+        <!-- Section Mes favoris -->
+        <div class="section">
+            <h2>Mes favoris</h2>
+            
+            <?php if (empty($mesFavoris)): ?>
+                <p>Vous n'avez pas encore de livres favoris.</p>
+            <?php else: ?>
+                <div class="livres-list">
+                    <?php foreach ($mesFavoris as $livre): ?>
+                        <div class="livre-item">
+                            <h3><?php echo htmlspecialchars($livre['titre']); ?></h3>
+                            <p>Auteur : <?php echo htmlspecialchars($livre['auteur']); ?></p>
+                            <form method="POST" action="" style="display: inline;">
+                                <input type="hidden" name="action" value="retirer_favori">
+                                <input type="hidden" name="livre_id" value="<?php echo $livre['id']; ?>">
+                                <button type="submit" class="btn btn-small">Retirer des favoris</button>
+                            </form>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Section livres disponibles -->
         <div class="section">
             <h2>Livres disponibles</h2>
             
@@ -122,6 +186,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="livre-item">
                             <h3><?php echo htmlspecialchars($livre['titre']); ?></h3>
                             <p>Auteur : <?php echo htmlspecialchars($livre['auteur']); ?></p>
+                            
+                            <?php if ($favorisManager->estFavori($_SESSION['user_id'], $livre['id'])): ?>
+                                <form method="POST" action="" style="display: inline;">
+                                    <input type="hidden" name="action" value="retirer_favori">
+                                    <input type="hidden" name="livre_id" value="<?php echo $livre['id']; ?>">
+                                    <button type="submit" class="btn btn-small">Retirer des favoris</button>
+                                </form>
+                            <?php else: ?>
+                                <form method="POST" action="" style="display: inline;">
+                                    <input type="hidden" name="action" value="ajouter_favori">
+                                    <input type="hidden" name="livre_id" value="<?php echo $livre['id']; ?>">
+                                    <button type="submit" class="btn btn-small">Ajouter aux favoris</button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
