@@ -21,6 +21,8 @@ $mesFavoris = $favorisManager->getFavorisUtilisateur($_SESSION['user_id']);
 $message_edition = '';
 $erreurs_edition = [];
 $message_favori = '';
+$message_livre = '';
+$erreurs_livre = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'editer') {
     $nouveau_nom = trim($_POST['nom'] ?? '');
@@ -88,6 +90,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }
 }
+
+// Ajouter un livre
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'ajouter_livre') {
+    $titre = trim($_POST['titre'] ?? '');
+    $auteur = trim($_POST['auteur'] ?? '');
+    
+    if (empty($titre)) {
+        $erreurs_livre[] = "Le titre est obligatoire.";
+    }
+    
+    if (empty($auteur)) {
+        $erreurs_livre[] = "L'auteur est obligatoire.";
+    }
+    
+    if (empty($erreurs_livre)) {
+        if ($livreManager->ajouterLivre($titre, $auteur, $_SESSION['user_id'])) {
+            $message_livre = "Livre ajouté avec succès !";
+            $livres = $livreManager->getTousLesLivres();
+        } else {
+            $erreurs_livre[] = "Erreur lors de l'ajout du livre.";
+        }
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -151,6 +176,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </form>
         </div>
         
+        <div class="section">
+            <h2>Ajouter un livre au catalogue</h2>
+            
+            <?php if (!empty($erreurs_livre)): ?>
+                <div class="error">
+                    <ul>
+                        <?php foreach ($erreurs_livre as $erreur): ?>
+                            <li><?php echo htmlspecialchars($erreur); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (!empty($message_livre)): ?>
+                <div class="success">
+                    <?php echo htmlspecialchars($message_livre); ?>
+                </div>
+            <?php endif; ?>
+            
+            <form method="POST" action="">
+                <input type="hidden" name="action" value="ajouter_livre">
+                
+                <div class="form-group">
+                    <label for="titre">Titre du livre</label>
+                    <input type="text" id="titre" name="titre" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="auteur">Auteur</label>
+                    <input type="text" id="auteur" name="auteur" required>
+                </div>
+                
+                <button type="submit" class="btn">Ajouter le livre</button>
+            </form>
+        </div>
+        
         <!-- Section Mes favoris -->
         <div class="section">
             <h2>Mes favoris</h2>
@@ -173,8 +234,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
             <?php endif; ?>
         </div>
-        
-        <!-- Section livres disponibles -->
         <div class="section">
             <h2>Livres disponibles</h2>
             

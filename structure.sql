@@ -41,3 +41,9 @@ create table if not exists favoris (
     FOREIGN KEY (livre_id) REFERENCES livres(id) ON DELETE CASCADE,
     UNIQUE KEY unique_favori (utilisateur_id, livre_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- etape 5 
+USE bibliotheque;
+ALTER TABLE livres 
+ADD COLUMN utilisateur_id INT DEFAULT NULL AFTER auteur,
+ADD FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id) ON DELETE SET NULL;

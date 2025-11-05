@@ -30,5 +30,20 @@ class Livre {
             return false;
         }
     }
+
+    /**
+     * @param string 
+     * @param string 
+     * @param int 
+     * @return bool 
+     */
+    public function ajouterLivre($titre, $auteur, $utilisateur_id) {
+        try {
+            $stmt = $this->pdo->prepare("INSERT INTO livres (titre, auteur, utilisateur_id) VALUES (?, ?, ?)");
+            return $stmt->execute([$titre, $auteur, $utilisateur_id]);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
 }
 ?>
