@@ -14,4 +14,5 @@ je n'ai pas ajouté de fichier `.gitignore` ni exclu de fichiers du dépôt. Tou
 ## Contact / Auteur
 - Dépôt pour rendu de TP — voir les fichiers pour plus de détails.
 
-date : 05/11/2025
+date : 06/11/2025
+Barbe Maël b2 dev
