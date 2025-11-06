@@ -14,6 +14,7 @@ $livres = $livreManager->getTousLesLivres();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bibliothèque Efrei - Accueil</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -53,5 +54,9 @@ $livres = $livreManager->getTousLesLivres();
             <?php endif; ?>
         </div>
     </div>
+
+    <footer>
+        <p>Fait par Barbe Maël dans le cadre d'un projet à Efrei Paris</p>
+    </footer>
 </body>
 </html>
